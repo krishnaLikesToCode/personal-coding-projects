@@ -39,12 +39,9 @@ def movePiece(newCell,oldCell):#subroutine to move a piece to a new cell,takes n
     global board
     nCellPos=getListPos(newCell)
     oldCellPos=getListPos(oldCell)
-    print(board[nCellPos[0]][nCellPos[1]])
-    print(getState(oldCell))
     board[nCellPos[0]][nCellPos[1]]=getState(oldCell)
     board[oldCellPos[0]][oldCellPos[1]]=['    ','    ',None]
-    print(board[nCellPos[0]][nCellPos[1]])
-    print(getState(oldCell))
+
 
 def getUpRow(curCell,amm):#gets row that is a specified amount above, takes current/relative cell and distance as args
     if((int(curCell[1])+amm))<=8:return int(curCell[1])+amm
@@ -322,4 +319,4 @@ while True:#player loop
     if checkPieceAmm('King','b')==0:print('White wins');exit()
     elif checkPieceAmm('King','w')==0:print('Black wins');exit()
 
-               
+ 
