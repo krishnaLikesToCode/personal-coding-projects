@@ -2,9 +2,7 @@ BLACK = '\033[93m'#yellow
 WHITE = '\033[0;94m'#blue
 ALPHA='abcdefgh'
 RESET='\033[0m'
-board = [
-    # Black back rank
-    [['b',' ♜  ','Rook'], ['b',' ♞  ','Knight'], ['b',' ♝  ','Bishop'], ['b',' ♛  ','Queen'], ['b',' ♚  ','King'], ['b',' ♝  ','Bishop'], ['b',' ♞  ','Knight'], ['b',' ♜  ','Rook']],
+board = [[['b',' ♜  ','Rook'], ['b',' ♞  ','Knight'], ['b',' ♝  ','Bishop'], ['b',' ♛  ','Queen'], ['b',' ♚  ','King'], ['b',' ♝  ','Bishop'], ['b',' ♞  ','Knight'], ['b',' ♜  ','Rook']],
     # Black pawns
     [['b',' ♟  ','Pawn'], ['b',' ♟  ','Pawn'], ['b',' ♟  ','Pawn'], ['b',' ♟  ','Pawn'], ['b',' ♟  ','Pawn'], ['b',' ♟  ','Pawn'], ['b',' ♟  ','Pawn'], ['b',' ♟  ','Pawn']],
     # Empty row
@@ -18,31 +16,25 @@ board = [
     # White pawns
     [['w',' ♙  ','Pawn'], ['w',' ♙  ','Pawn'], ['w',' ♙  ','Pawn'], ['w',' ♙  ','Pawn'], ['w',' ♙  ','Pawn'], ['w',' ♙  ','Pawn'], ['w',' ♙  ','Pawn'], ['w',' ♙  ','Pawn']],
     # White back rank
-    [['w',' ♖  ','Rook'], ['w',' ♘  ','Knight'], ['w',' ♗  ','Bishop'], ['w',' ♕  ','Queen'], ['w',' ♔  ','King'], ['w',' ♗  ','Bishop'], ['w',' ♘  ','Knight'], ['w',' ♖  ','Rook']],
-]
+    [['w',' ♖  ','Rook'], ['w',' ♘  ','Knight'], ['w',' ♗  ','Bishop'], ['w',' ♕  ','Queen'], ['w',' ♔  ','King'], ['w',' ♗  ','Bishop'], ['w',' ♘  ','Knight'], ['w',' ♖  ','Rook']]]
 #board functions/subprograms
 def printBoard():#prints the current board
     global board 
     print(f'\n {RESET+"—".join(['' for i in range(56)])}\n'.join([f"{WHITE+(str(8-row))}{(RESET+'|').join([f' {WHITE+piece[1]} ' if piece[0]=='b' else f' {BLACK+piece[1]} ' for piece in board[row]])}" for row in range(8)]))
     print("\n    A      B      C      D      E      F      G      H\n\n")
-
 def getState(cell):#returns cell values in form [color,icon,piece/state] and takes cell code as arg
     global board
     cellInBoard= board[7-(int(cell[1])-1)][ALPHA.index(cell[0].lower())]
     return cellInBoard
-
 def getListPos(cell):#returns list pos of a cell in form [row,column] and takes cell code as arg
     global board
-    return (x:=[(7-(int(cell[1])-1)),(ALPHA.index(cell[0].lower()))])
-
+    return ([(7-(int(cell[1])-1)),(ALPHA.index(cell[0].lower()))])
 def movePiece(newCell,oldCell):#subroutine to move a piece to a new cell,takes new cell code and old cell code as args
     global board
     nCellPos=getListPos(newCell)
     oldCellPos=getListPos(oldCell)
     board[nCellPos[0]][nCellPos[1]]=getState(oldCell)
     board[oldCellPos[0]][oldCellPos[1]]=['    ','    ',None]
-
-
 def getUpRow(curCell,amm):#gets row that is a specified amount above, takes current/relative cell and distance as args
     if((int(curCell[1])+amm))<=8:return int(curCell[1])+amm
     return '?'
@@ -57,6 +49,7 @@ def getRightCol(curCell,amm):#gets column that is a specified amount to the righ
     if (ALPHA.index(curCell[0].lower())+amm) <=7:
         return ALPHA[ALPHA.index(curCell[0].lower())+amm]
     return '?'
+def pawnPromotion(cell):cellPos=getListPos(cell);board[cellPos[0]][cellPos[1]]=[f'{getState(cell)[0]}',' ♛  ','Queen']
 def checkPieceAmm(piece,color):#finds ammount of pieces of a specified color, takes piece to find and color as args
     global board
     piecesFound=0
@@ -64,7 +57,6 @@ def checkPieceAmm(piece,color):#finds ammount of pieces of a specified color, ta
         for j in i:
             if j[2]==piece and j[0]==color:piecesFound+=1
     return piecesFound
-
 class PieceMoves:#class that contains all pieces individual movesets
     def __init__(self,piece,cellToMoveTo,curCell,showValidMoves):#initialising function for class
         self.piece=piece
@@ -72,10 +64,7 @@ class PieceMoves:#class that contains all pieces individual movesets
         self.curCell=curCell
         self.showValidMoves=showValidMoves
     def pawnMoves(self):#pawn moveset 
-        validMoves=[]
-        basicMoves=[] 
-        takingMoves=[]
-
+        validMoves,basicMoves,takingMoves=[],[],[]
         if getState(self.curCell)[0]=='w':
             basicMoves.append(f'{self.curCell[0]}{getUpRow(self.curCell,1)}')
             takingMoves.append(f'{getLeftCol(self.curCell,1)}{getUpRow(self.curCell,1)}')
@@ -100,9 +89,9 @@ class PieceMoves:#class that contains all pieces individual movesets
             return -1#repeat player turn
         if self.cellToMoveTo.upper() in validMoves:
             movePiece(self.cellToMoveTo,self.curCell)
+            if (getState(self.cellToMoveTo)[0]=='b' and self.cellToMoveTo[1]=='1') or (getState(self.cellToMoveTo)[0]=='w' and self.cellToMoveTo[1]=='8'):pawnPromotion(self.cellToMoveTo)
         else:return 0#invalid error
         return 1#success
-
     def chooseMoveSetAndRun(self):#function that is called, finds piece type and runs respective moveset
         match self.piece:
             case 'Pawn':
@@ -121,8 +110,7 @@ class PieceMoves:#class that contains all pieces individual movesets
                 return -3# -3 is none in cell error
     def kingMoves(self):#king moveset
         global board
-        moves=[]
-        validMoves=[]
+        moves,validMoves=[],[]
         try:moves.append(f'{self.curCell[0]}{getUpRow(self.curCell,1)}')
         except:pass
         try:moves.append(f'{self.curCell[0]}{getDownRow(self.curCell,1)}')
@@ -151,8 +139,7 @@ class PieceMoves:#class that contains all pieces individual movesets
         else:return 0
         return 1
     def queenMoves(self):#queen moveset
-        moves=[]
-        validMoves=[]
+        moves,validMoves=[],[]
         for amm in range(1,8):
             moves.append(f'{self.curCell[0]}{getUpRow(self.curCell,amm)}')
             if '?' in moves[-1]:break
@@ -185,7 +172,6 @@ class PieceMoves:#class that contains all pieces individual movesets
             moves.append(f'{getRightCol(self.curCell,amm)}{getDownRow(self.curCell,amm)}')
             if '?' in moves[-1]:break
             if getState(moves[-1])[2] is not None:break
-
         for i in moves:
             if '?' not in i:
                 if getState(i)[2] is None or getState(i)[0]!= getState(self.curCell)[0] :validMoves.append(i.upper())
@@ -216,7 +202,6 @@ class PieceMoves:#class that contains all pieces individual movesets
             moves.append(f'{getRightCol(self.curCell,amm)}{getDownRow(self.curCell,amm)}')
             if '?' in moves[-1]:break
             if getState(moves[-1])[2] is not None:break
-
         for i in moves:
             if '?' not in i:
                 if getState(i)[2] is None or getState(i)[0]!= getState(self.curCell)[0] :validMoves.append(i.upper())
@@ -228,7 +213,6 @@ class PieceMoves:#class that contains all pieces individual movesets
             movePiece(self.cellToMoveTo,self.curCell)
         else:return 0
         return 1
-
     def rookMoves(self):#rook moveset
         moves=[]
         validMoves=[]
@@ -259,7 +243,6 @@ class PieceMoves:#class that contains all pieces individual movesets
             movePiece(self.cellToMoveTo,self.curCell)
         else:return 0
         return 1
-
     def knightMoves(self):#knight moveset
         moves=[]
         validMoves=[]
@@ -271,17 +254,14 @@ class PieceMoves:#class that contains all pieces individual movesets
         moves.append(f'{getRightCol(self.curCell,2)}{getDownRow(self.curCell,1)}')
         moves.append(f'{getLeftCol(self.curCell,2)}{getUpRow(self.curCell,1)}')
         moves.append(f'{getLeftCol(self.curCell,2)}{getDownRow(self.curCell,1)}')
-
         for i in moves:
             if '?' not in i:
                 if getState(i)[0]!=getState(self.curCell)[0] or getState(i)[2] is None:
                     validMoves.append(i.upper())
-
         if len(validMoves)==0:return -2
         if self.showValidMoves==True:
             print(f'\n\nValid moves are:    {",".join(validMoves)}')
             return -1
-
         if self.cellToMoveTo.upper() in validMoves:
             movePiece(self.cellToMoveTo,self.curCell)
         else:return 0
@@ -297,7 +277,6 @@ while True:#player loop
         printBoard() 
         if player=='white':prompt=str(input("Enter move in form '<old> to <new>' or type 'list <square>' ")).strip().upper()
         else:prompt=str(input(f"{WHITE}Enter move in form '<old> to <new>' or type 'list <square>' ")).strip().upper()
-
         if 'LIST' in prompt:
             listVals=True;x=prompt.replace('LIST','').strip();y='None'
             try:piece=getState(x);break
