@@ -4,11 +4,13 @@ hi=str(input("\nWould you like to play singleplayer or multiplayer (type s or m)
 if hi=='m':aiOn=False
 else:
     aiOn=True
-    hi2=int(input("AI difficulty: baby (0), easy (1), medium (2), hard (3). Type the number"))
+    hi2=int(input("AI difficulty: easy (0), medium (1), hard- needs good PC (2), extreme- needs NASA computer (3).\nType your answer\t"))
     if hi2==0:depth=0
     elif hi2==1:depth=1
     elif hi2==2:depth=3
     else:depth=5
+LETTERS=['A','B','C','D','E','F','G','H']
+NUMBERS=['1','2','3','4','5','6','7','8']
 BLACK = '\033[93m'#yellow
 WHITE = '\033[0;94m'#blue
 ALPHA='abcdefgh'
@@ -81,7 +83,43 @@ def checkPieceAmm(piece,color):#finds ammount of pieces of a specified color, ta
         for j in i:
             if j[2]==piece and j[0]==color:piecesFound+=1
     return piecesFound
+def copyBoard(board):return [[cell[:] for cell in row] for row in board]
 
+def undoMove(board, old, new, captured,capturing):
+    oldPos = getListPos(old)
+    newPos = getListPos(new)
+    board[oldPos[0]][oldPos[1]] = capturing
+    board[newPos[0]][newPos[1]] = captured
+
+def checkIfCheckOnPlayer(board,s_clr):
+    pcsToCheck=[]
+    kingPos=None
+    queenPos=[]
+    allvMoves=[]
+    kingChecks=0
+    queenChecks=0
+    for i in LETTERS:
+        for j in NUMBERS:
+            m=getState(i+j,board)
+            if m[0]!=s_clr and m[0].strip()!='':
+                pcsToCheck.append(i+j)
+            if m[0]==s_clr and m[2]=='King':
+                kingPos=i+j
+            if m[0]==s_clr and m[2]=='Queen':
+                queenPos.append(i+j)
+    for i in pcsToCheck:
+        pieceM=PieceMoves(getState(i,board)[2],'None',i,False,True,board)
+        vMoves=pieceM.chooseMoveSetAndRun()
+        for j in vMoves:
+            allvMoves.append(j)
+    if kingPos in allvMoves and kingPos!=None:
+        kingChecks+=1
+    if len(queenPos)!=0:
+        for i in queenPos:
+            if i in allvMoves:
+                queenChecks+=1
+                break
+    return [queenChecks,kingChecks]
 class PieceMoves:#class that contains all pieces individual movesets
     def __init__(self,piece,cellToMoveTo,curCell,showValidMoves,isAI,board=None):#initialising function for class
         self.piece=piece
@@ -319,17 +357,17 @@ class PieceMoves:#class that contains all pieces individual movesets
 def lookUpVal(piece):
     match piece:
         case 'Pawn':
-            return 2
+            return 1
         case 'Rook':
-            return 4.9
+            return 5
         case 'Bishop':
-            return 4.9
+            return 4
         case 'Knight':
-            return 4.9
+            return 3
         case 'Queen':
-            return 10
+            return 9
         case 'King':
-            return 100
+            return 1000
         case _:
             return 0
 
@@ -341,35 +379,53 @@ def boardValCalc(board,player):
             clr= j[0]
             if clr==player:tVal+=val
             else:tVal-=val
+    qAndKchecksOnSelf=checkIfCheckOnPlayer(board,player)
+    if qAndKchecksOnSelf[0]!=0:tVal-=(3.1)
+    if qAndKchecksOnSelf[1]!=0:tVal-=(1000)
+    qAndKchecksOnOpp=checkIfCheckOnPlayer(board,'w' if player!='w' else 'b')
+    if qAndKchecksOnOpp[0]!=0:tVal+=(3.1)
+    if qAndKchecksOnOpp[1]!=0:tVal+=(1000)
     return tVal
 
 def simulate(board,player,d,cPlayerBest=-100,oPlayerBest=100): 
-    letters=['A','B','C','D','E','F','G','H']
-    numbers=['1','2','3','4','5','6','7','8']
     piecesToCheck=[]
     bestMove=None
-    for i in letters:
-        for j in numbers:
+    for i in LETTERS:
+        for j in NUMBERS:
             cCell=i+j
             if getState(cCell,board)[0]==player:piecesToCheck.append(cCell)
     random.shuffle(piecesToCheck)
     for i in piecesToCheck:
+        capturingMoves=[]
+        quietMoves=[]
         stf=getState(i,board)
         thing=PieceMoves(stf[2],'None',i,False,True,board)
         moves=thing.chooseMoveSetAndRun()
+        sortedMoves=[]
         if len(moves)==0:pass
         else:
             for j in moves:
-                nBoard = [row[:] for row in board]  # efficent way of making copy of list
+                if getState(j,board)[2] is not None:capturingMoves.append(j)
+                else:quietMoves.append(j)
+            capturingMoves.sort(key=lambda m: lookUpVal(getState(m,board)[2]), reverse=True)
+            sortedMoves=capturingMoves+quietMoves
+            for j in sortedMoves:
+                affectedPiece=getState(j,board)[:]
+                capturingPiece=getState(i,board)[:]
+                movePiece(j,i,board)
+                if checkIfCheckOnPlayer(board,player)[1]:#checks if move leads to king getting checked (and prunes)
+                    undoMove(board,i,j,affectedPiece,capturingPiece)
+                    continue
                 otherPlayer='b' if player=='w' else 'w'
                 if d>0:
-                    futureMove=simulate(nBoard,otherPlayer,d-1, -oPlayerBest,-cPlayerBest)
-                    score=-futureMove[2] if futureMove else boardValCalc(nBoard,player)
-                    moveAndScore=[i,j,score]
+                    futureMove=simulate(board,otherPlayer,d-1, -oPlayerBest,-cPlayerBest)
+                    score=-futureMove[2] if futureMove else boardValCalc(board,player)
+                    
                 else:
-                    score=boardValCalc(nBoard,player)
-                    moveAndScore=[i,j,score]
-                
+                    score=boardValCalc(board,player)
+                    
+                moveAndScore=[i,j,score]
+                undoMove(board,i,j,affectedPiece,capturingPiece)
                 if score > cPlayerBest or bestMove==None:bestMove=moveAndScore
                 cPlayerBest=max(cPlayerBest,score)
 
