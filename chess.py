@@ -1,8 +1,21 @@
+import random
+print("Welcome to chess but made by a person who doesn't know what he's doing!")
+hi=str(input("\nWould you like to play singleplayer or multiplayer (type s or m)?\t")).strip().lower()
+if hi=='m':aiOn=False
+else:
+    aiOn=True
+    hi2=int(input("AI difficulty: baby (0), easy (1), medium (2), hard (3). Type the number"))
+    if hi2==0:depth=0
+    elif hi2==1:depth=1
+    elif hi2==2:depth=3
+    else:depth=5
 BLACK = '\033[93m'#yellow
 WHITE = '\033[0;94m'#blue
 ALPHA='abcdefgh'
 RESET='\033[0m'
-board = [[['b',' ♜  ','Rook'], ['b',' ♞  ','Knight'], ['b',' ♝  ','Bishop'], ['b',' ♛  ','Queen'], ['b',' ♚  ','King'], ['b',' ♝  ','Bishop'], ['b',' ♞  ','Knight'], ['b',' ♜  ','Rook']],
+board = [
+    # Black back rank
+    [['b',' ♜  ','Rook'], ['b',' ♞  ','Knight'], ['b',' ♝  ','Bishop'], ['b',' ♛  ','Queen'], ['b',' ♚  ','King'], ['b',' ♝  ','Bishop'], ['b',' ♞  ','Knight'], ['b',' ♜  ','Rook']],
     # Black pawns
     [['b',' ♟  ','Pawn'], ['b',' ♟  ','Pawn'], ['b',' ♟  ','Pawn'], ['b',' ♟  ','Pawn'], ['b',' ♟  ','Pawn'], ['b',' ♟  ','Pawn'], ['b',' ♟  ','Pawn'], ['b',' ♟  ','Pawn']],
     # Empty row
@@ -16,25 +29,36 @@ board = [[['b',' ♜  ','Rook'], ['b',' ♞  ','Knight'], ['b',' ♝  ','Bishop'
     # White pawns
     [['w',' ♙  ','Pawn'], ['w',' ♙  ','Pawn'], ['w',' ♙  ','Pawn'], ['w',' ♙  ','Pawn'], ['w',' ♙  ','Pawn'], ['w',' ♙  ','Pawn'], ['w',' ♙  ','Pawn'], ['w',' ♙  ','Pawn']],
     # White back rank
-    [['w',' ♖  ','Rook'], ['w',' ♘  ','Knight'], ['w',' ♗  ','Bishop'], ['w',' ♕  ','Queen'], ['w',' ♔  ','King'], ['w',' ♗  ','Bishop'], ['w',' ♘  ','Knight'], ['w',' ♖  ','Rook']]]
+    [['w',' ♖  ','Rook'], ['w',' ♘  ','Knight'], ['w',' ♗  ','Bishop'], ['w',' ♕  ','Queen'], ['w',' ♔  ','King'], ['w',' ♗  ','Bishop'], ['w',' ♘  ','Knight'], ['w',' ♖  ','Rook']],
+]
 #board functions/subprograms
 def printBoard():#prints the current board
     global board 
     print(f'\n {RESET+"—".join(['' for i in range(56)])}\n'.join([f"{WHITE+(str(8-row))}{(RESET+'|').join([f' {WHITE+piece[1]} ' if piece[0]=='b' else f' {BLACK+piece[1]} ' for piece in board[row]])}" for row in range(8)]))
     print("\n    A      B      C      D      E      F      G      H\n\n")
-def getState(cell):#returns cell values in form [color,icon,piece/state] and takes cell code as arg
-    global board
-    cellInBoard= board[7-(int(cell[1])-1)][ALPHA.index(cell[0].lower())]
-    return cellInBoard
+
+def getState(cell,board):#returns cell values in form [color,icon,piece/state] and takes cell code as arg
+    return board[7-(int(cell[1])-1)][ALPHA.index(cell[0].lower())]
+
 def getListPos(cell):#returns list pos of a cell in form [row,column] and takes cell code as arg
-    global board
     return ([(7-(int(cell[1])-1)),(ALPHA.index(cell[0].lower()))])
-def movePiece(newCell,oldCell):#subroutine to move a piece to a new cell,takes new cell code and old cell code as args
+
+def movePiece(newCell,oldCell,b=None):#subroutine to move a piece to a new cell,takes new cell code and old cell code as args
     global board
+    if b is None:
+        tboard=board
+    else:tboard=b
     nCellPos=getListPos(newCell)
     oldCellPos=getListPos(oldCell)
-    board[nCellPos[0]][nCellPos[1]]=getState(oldCell)
-    board[oldCellPos[0]][oldCellPos[1]]=['    ','    ',None]
+    thing=getState(oldCell,tboard)
+    tboard[nCellPos[0]][nCellPos[1]]=thing
+    if (thing[2]=='Pawn' and ((thing[0]=='w' and newCell[1]=='8') or (thing[0]=='b' and newCell[1]=='1'))):
+        pawnPromotion(newCell,tboard)
+    tboard[oldCellPos[0]][oldCellPos[1]]=['    ','    ',None]
+
+    return tboard
+
+
 def getUpRow(curCell,amm):#gets row that is a specified amount above, takes current/relative cell and distance as args
     if((int(curCell[1])+amm))<=8:return int(curCell[1])+amm
     return '?'
@@ -49,7 +73,7 @@ def getRightCol(curCell,amm):#gets column that is a specified amount to the righ
     if (ALPHA.index(curCell[0].lower())+amm) <=7:
         return ALPHA[ALPHA.index(curCell[0].lower())+amm]
     return '?'
-def pawnPromotion(cell):cellPos=getListPos(cell);board[cellPos[0]][cellPos[1]]=[f'{getState(cell)[0]}',' ♛  ','Queen']
+def pawnPromotion(cell,b):cellPos=getListPos(cell);b[cellPos[0]][cellPos[1]]=[f'{getState(cell,b)[0]}',' ♛  ','Queen']
 def checkPieceAmm(piece,color):#finds ammount of pieces of a specified color, takes piece to find and color as args
     global board
     piecesFound=0
@@ -57,15 +81,21 @@ def checkPieceAmm(piece,color):#finds ammount of pieces of a specified color, ta
         for j in i:
             if j[2]==piece and j[0]==color:piecesFound+=1
     return piecesFound
+
 class PieceMoves:#class that contains all pieces individual movesets
-    def __init__(self,piece,cellToMoveTo,curCell,showValidMoves):#initialising function for class
+    def __init__(self,piece,cellToMoveTo,curCell,showValidMoves,isAI,board=None):#initialising function for class
         self.piece=piece
         self.cellToMoveTo=cellToMoveTo
         self.curCell=curCell
         self.showValidMoves=showValidMoves
+        self.isAI=isAI
+        self.board=board
     def pawnMoves(self):#pawn moveset 
-        validMoves,basicMoves,takingMoves=[],[],[]
-        if getState(self.curCell)[0]=='w':
+        validMoves=[]
+        basicMoves=[] 
+        takingMoves=[]
+
+        if getState(self.curCell,self.board)[0]=='w':
             basicMoves.append(f'{self.curCell[0]}{getUpRow(self.curCell,1)}')
             takingMoves.append(f'{getLeftCol(self.curCell,1)}{getUpRow(self.curCell,1)}')
             takingMoves.append(f'{getRightCol(self.curCell,1)}{getUpRow(self.curCell,1)}')
@@ -77,21 +107,23 @@ class PieceMoves:#class that contains all pieces individual movesets
             if int(self.curCell[1])==7:basicMoves.append(f'{self.curCell[0]}{getDownRow(self.curCell,2)}')
         for i in basicMoves:
             try:
-                if getState(i)[2] is None and '?' not in i:  validMoves.append(i.upper())
+                if getState(i,self.board)[2] is None and '?' not in i:  validMoves.append(i.upper())
             except:pass
         for i in takingMoves:
             try:
-                if getState(i)[2] is not None and getState(i)[0] != getState(self.curCell)[0] and '?' not in i:   validMoves.append(i.upper())
+                if getState(i,self.board)[2] is not None and getState(i,self.board)[0] != getState(self.curCell,self.board)[0] and '?' not in i:   validMoves.append(i.upper())
             except:pass
+        if self.isAI:return validMoves
         if len(validMoves)==0:return -2#no possible moves
         if self.showValidMoves==True:
             print(f"Valid moves are:    {','.join(validMoves)}")
             return -1#repeat player turn
         if self.cellToMoveTo.upper() in validMoves:
-            movePiece(self.cellToMoveTo,self.curCell)
-            if (getState(self.cellToMoveTo)[0]=='b' and self.cellToMoveTo[1]=='1') or (getState(self.cellToMoveTo)[0]=='w' and self.cellToMoveTo[1]=='8'):pawnPromotion(self.cellToMoveTo)
+            movePiece(self.cellToMoveTo,self.curCell,self.board)
+            #if (getState(self.cellToMoveTo,self.board)[0]=='b' and self.cellToMoveTo[1]=='1') or (getState(self.cellToMoveTo,self.board)[0]=='w' and self.cellToMoveTo[1]=='8'):pawnPromotion(self.cellToMoveTo)
         else:return 0#invalid error
         return 1#success
+
     def chooseMoveSetAndRun(self):#function that is called, finds piece type and runs respective moveset
         match self.piece:
             case 'Pawn':
@@ -109,8 +141,8 @@ class PieceMoves:#class that contains all pieces individual movesets
             case _:
                 return -3# -3 is none in cell error
     def kingMoves(self):#king moveset
-        global board
-        moves,validMoves=[],[]
+        moves=[]
+        validMoves=[]
         try:moves.append(f'{self.curCell[0]}{getUpRow(self.curCell,1)}')
         except:pass
         try:moves.append(f'{self.curCell[0]}{getDownRow(self.curCell,1)}')
@@ -129,120 +161,131 @@ class PieceMoves:#class that contains all pieces individual movesets
         except:pass
         for i in moves:
             if '?' not in i:
-                if getState(i)[2] is None or getState(i)[0]!= getState(self.curCell)[0] :validMoves.append(i.upper())
+                if getState(i,self.board)[2] is None or getState(i,self.board)[0]!= getState(self.curCell,self.board)[0] :validMoves.append(i.upper())
+
+        if self.isAI:return validMoves
         if len(validMoves)==0:return -2
         if self.showValidMoves==True:
             print(f'Valid moves are:    {",".join(validMoves)}')
             return -1
         if self.cellToMoveTo.upper() in validMoves:
-            movePiece(self.cellToMoveTo,self.curCell)
+            movePiece(self.cellToMoveTo,self.curCell,self.board)
         else:return 0
         return 1
     def queenMoves(self):#queen moveset
-        moves,validMoves=[],[]
+        moves=[]
+        validMoves=[]
         for amm in range(1,8):
             moves.append(f'{self.curCell[0]}{getUpRow(self.curCell,amm)}')
             if '?' in moves[-1]:break
-            if getState(moves[-1])[2] is not None:break
+            if getState(moves[-1],self.board)[2] is not None:break
         for amm in range(1,8):
             moves.append(f'{self.curCell[0]}{getDownRow(self.curCell,amm)}')
             if '?' in moves[-1]:break
-            if getState(moves[-1])[2] is not None:break
+            if getState(moves[-1],self.board)[2] is not None:break
         for amm in range(1,8):
             moves.append(f'{getLeftCol(self.curCell,amm)}{self.curCell[1]}')
             if '?' in moves[-1]:break
-            if getState(moves[-1])[2] is not None:break
+            if getState(moves[-1],self.board)[2] is not None:break
         for amm in range(1,8):
             moves.append(f'{getRightCol(self.curCell,amm)}{self.curCell[1]}')
             if '?' in moves[-1]:break
-            if getState(moves[-1])[2] is not None:break
+            if getState(moves[-1],self.board)[2] is not None:break
         for amm in range(1,8):
             moves.append(f'{getLeftCol(self.curCell,amm)}{getUpRow(self.curCell,amm)}')
             if '?' in moves[-1]:break
-            if getState(moves[-1])[2] is not None:break
+            if getState(moves[-1],self.board)[2] is not None:break
         for amm in range(1,8):
             moves.append(f'{getLeftCol(self.curCell,amm)}{getDownRow(self.curCell,amm)}')
             if '?' in moves[-1]:break
-            if getState(moves[-1])[2] is not None:break
+            if getState(moves[-1],self.board)[2] is not None:break
         for amm in range(1,8):
             moves.append(f'{getRightCol(self.curCell,amm)}{getUpRow(self.curCell,amm)}')
             if '?' in moves[-1]:break
-            if getState(moves[-1])[2] is not None:break
+            if getState(moves[-1],self.board)[2] is not None:break
         for amm in range(1,8):
             moves.append(f'{getRightCol(self.curCell,amm)}{getDownRow(self.curCell,amm)}')
             if '?' in moves[-1]:break
-            if getState(moves[-1])[2] is not None:break
+            if getState(moves[-1],self.board)[2] is not None:break
+
         for i in moves:
             if '?' not in i:
-                if getState(i)[2] is None or getState(i)[0]!= getState(self.curCell)[0] :validMoves.append(i.upper())
+                if getState(i,self.board)[2] is None or getState(i,self.board)[0]!= getState(self.curCell,self.board)[0] :validMoves.append(i.upper())
+        if self.isAI:return validMoves
         if len(validMoves)==0:return -2
         if self.showValidMoves==True:
             print(f'Valid moves are:    {",".join(validMoves)}')
             return -1
         if self.cellToMoveTo.upper() in validMoves:
-            movePiece(self.cellToMoveTo,self.curCell)
+            movePiece(self.cellToMoveTo,self.curCell,self.board)
         else:return 0
         return 1
     def bishopMoves(self):#bishop moveset
+        
         moves=[]
         validMoves=[]
         for amm in range(1,8):
             moves.append(f'{getLeftCol(self.curCell,amm)}{getUpRow(self.curCell,amm)}')
             if '?' in moves[-1]:break
-            if getState(moves[-1])[2] is not None:break
+            if getState(moves[-1],self.board)[2] is not None:break
         for amm in range(1,8):
             moves.append(f'{getLeftCol(self.curCell,amm)}{getDownRow(self.curCell,amm)}')
             if '?' in moves[-1]:break
-            if getState(moves[-1])[2] is not None:break
+            if getState(moves[-1],self.board)[2] is not None:break
         for amm in range(1,8):
             moves.append(f'{getRightCol(self.curCell,amm)}{getUpRow(self.curCell,amm)}')
             if '?' in moves[-1]:break
-            if getState(moves[-1])[2] is not None:break
+            if getState(moves[-1],self.board)[2] is not None:break
         for amm in range(1,8):
             moves.append(f'{getRightCol(self.curCell,amm)}{getDownRow(self.curCell,amm)}')
             if '?' in moves[-1]:break
-            if getState(moves[-1])[2] is not None:break
+            if getState(moves[-1],self.board)[2] is not None:break
+
         for i in moves:
             if '?' not in i:
-                if getState(i)[2] is None or getState(i)[0]!= getState(self.curCell)[0] :validMoves.append(i.upper())
+                if getState(i,self.board)[2] is None or getState(i,self.board)[0]!= getState(self.curCell,self.board)[0] :validMoves.append(i.upper())
+        if self.isAI:return validMoves
         if len(validMoves)==0:return -2
         if self.showValidMoves==True:
             print(f'Valid moves are:    {",".join(validMoves)}')
             return -1
         if self.cellToMoveTo.upper() in validMoves:
-            movePiece(self.cellToMoveTo,self.curCell)
+            movePiece(self.cellToMoveTo,self.curCell,self.board)
         else:return 0
         return 1
+
     def rookMoves(self):#rook moveset
         moves=[]
         validMoves=[]
         for amm in range(1,8):
             moves.append(f'{self.curCell[0]}{getUpRow(self.curCell,amm)}')
             if '?' in moves[-1]:break
-            if getState(moves[-1])[2] is not None:break
+            if getState(moves[-1],self.board)[2] is not None:break
         for amm in range(1,8):
             moves.append(f'{self.curCell[0]}{getDownRow(self.curCell,amm)}')
             if '?' in moves[-1]:break
-            if getState(moves[-1])[2] is not None:break
+            if getState(moves[-1],self.board)[2] is not None:break
         for amm in range(1,8):
             moves.append(f'{getLeftCol(self.curCell,amm)}{self.curCell[1]}')
             if '?' in moves[-1]:break
-            if getState(moves[-1])[2] is not None:break
+            if getState(moves[-1],self.board)[2] is not None:break
         for amm in range(1,8):
             moves.append(f'{getRightCol(self.curCell,amm)}{self.curCell[1]}')
             if '?' in moves[-1]:break
-            if getState(moves[-1])[2] is not None:break
+            if getState(moves[-1],self.board)[2] is not None:break
         for i in moves:
             if '?' not in i:
-                if getState(i)[2] is None or getState(i)[0]!= getState(self.curCell)[0] :validMoves.append(i.upper())
+                if getState(i,self.board)[2] is None or getState(i,self.board)[0]!= getState(self.curCell,self.board)[0] :validMoves.append(i.upper())
+        if self.isAI:return validMoves
         if len(validMoves)==0:return -2
         if self.showValidMoves==True:
             print(f'Valid moves are:    {",".join(validMoves)}')
             return -1
         if self.cellToMoveTo.upper() in validMoves:
-            movePiece(self.cellToMoveTo,self.curCell)
+            movePiece(self.cellToMoveTo,self.curCell,self.board)
         else:return 0
         return 1
+
     def knightMoves(self):#knight moveset
         moves=[]
         validMoves=[]
@@ -254,40 +297,121 @@ class PieceMoves:#class that contains all pieces individual movesets
         moves.append(f'{getRightCol(self.curCell,2)}{getDownRow(self.curCell,1)}')
         moves.append(f'{getLeftCol(self.curCell,2)}{getUpRow(self.curCell,1)}')
         moves.append(f'{getLeftCol(self.curCell,2)}{getDownRow(self.curCell,1)}')
+
         for i in moves:
             if '?' not in i:
-                if getState(i)[0]!=getState(self.curCell)[0] or getState(i)[2] is None:
+                if getState(i,self.board)[0]!=getState(self.curCell,self.board)[0] or getState(i,self.board)[2] is None:
                     validMoves.append(i.upper())
+        if self.isAI:return validMoves
+
         if len(validMoves)==0:return -2
         if self.showValidMoves==True:
             print(f'\n\nValid moves are:    {",".join(validMoves)}')
             return -1
+
         if self.cellToMoveTo.upper() in validMoves:
-            movePiece(self.cellToMoveTo,self.curCell)
+            movePiece(self.cellToMoveTo,self.curCell,self.board)
         else:return 0
         return 1
 
+
+#engine code
+def lookUpVal(piece):
+    match piece:
+        case 'Pawn':
+            return 2
+        case 'Rook':
+            return 4.9
+        case 'Bishop':
+            return 4.9
+        case 'Knight':
+            return 4.9
+        case 'Queen':
+            return 10
+        case 'King':
+            return 100
+        case _:
+            return 0
+
+def boardValCalc(board,player):
+    tVal=0
+    for n,i in enumerate(board):
+        for x,j in enumerate(i):
+            val=lookUpVal(j[2])
+            clr= j[0]
+            if clr==player:tVal+=val
+            else:tVal-=val
+    return tVal
+
+def simulate(board,player,d,cPlayerBest=-100,oPlayerBest=100): 
+    letters=['A','B','C','D','E','F','G','H']
+    numbers=['1','2','3','4','5','6','7','8']
+    piecesToCheck=[]
+    bestMove=None
+    for i in letters:
+        for j in numbers:
+            cCell=i+j
+            if getState(cCell,board)[0]==player:piecesToCheck.append(cCell)
+    random.shuffle(piecesToCheck)
+    for i in piecesToCheck:
+        stf=getState(i,board)
+        thing=PieceMoves(stf[2],'None',i,False,True,board)
+        moves=thing.chooseMoveSetAndRun()
+        if len(moves)==0:pass
+        else:
+            for j in moves:
+                nBoard = [row[:] for row in board]  # efficent way of making copy of list
+                otherPlayer='b' if player=='w' else 'w'
+                if d>0:
+                    futureMove=simulate(nBoard,otherPlayer,d-1, -oPlayerBest,-cPlayerBest)
+                    score=-futureMove[2] if futureMove else boardValCalc(nBoard,player)
+                    moveAndScore=[i,j,score]
+                else:
+                    score=boardValCalc(nBoard,player)
+                    moveAndScore=[i,j,score]
+                
+                if score > cPlayerBest or bestMove==None:bestMove=moveAndScore
+                cPlayerBest=max(cPlayerBest,score)
+
+                if cPlayerBest >= oPlayerBest:
+                     return bestMove
+    return bestMove
+
+
+
+
+
+#player loop
 count=0
-while True:#player loop
+while True:
     player='white'
     if count % 2 !=0:player='black'
+    if aiOn and player=='black':
+        aiMoveChoice=simulate(board,'b',depth)
+        movePiece(aiMoveChoice[1],aiMoveChoice[0],board)
+        p=getState(aiMoveChoice[1],board)
+        print(f"Black moved the {p[2].lower()} in {aiMoveChoice[0]} to {aiMoveChoice[1]}")
+        count+=1
+        continue
+
     print(f"{(BLACK+player.capitalize()) if player=='white' else(WHITE+player.capitalize())}'s turn to play\n")
     listVals=False
     while True:#move validation loop
         printBoard() 
         if player=='white':prompt=str(input("Enter move in form '<old> to <new>' or type 'list <square>' ")).strip().upper()
         else:prompt=str(input(f"{WHITE}Enter move in form '<old> to <new>' or type 'list <square>' ")).strip().upper()
+
         if 'LIST' in prompt:
             listVals=True;x=prompt.replace('LIST','').strip();y='None'
-            try:piece=getState(x);break
+            try:piece=getState(x,board);break
             except:print("\nInvalid cell");continue
         prompt=prompt.lower().replace(' ','').split('to')
         if len(prompt)!=2:print("\nInvalid format, enter in form (a2->a3)\n");continue
         x,y=prompt[0],prompt[1]
-        piece=getState(x)
+        piece=getState(x,board)
         if piece[0]!=player[0]:print(f"\nYou can't move {x}, it's not your piece!\n");continue
         break
-    userInput=PieceMoves(piece[2],y,x,listVals)#assigns users inputs as a class object
+    userInput=PieceMoves(piece[2],y,x,listVals,False,board)#assigns users inputs as a class object
     status=userInput.chooseMoveSetAndRun()#runs respective moveset from PieceMoves class
     match status:#checks status of previous moves
         case -3:print("Square empty")
