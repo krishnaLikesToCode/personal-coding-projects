@@ -13,6 +13,7 @@ const std::string RESET = "\033[0m";//what it says on the tin
 const std::string BLACK  = "\033[0;94m"; // white
 const std::string WHITE  = "\033[93m"; // black
 const std::string ALPHA ="ABCDEFGH";
+int nodes=0;
 
 void doWeirdTerminalStuff(){
   #ifdef _WIN32
@@ -98,11 +99,12 @@ std::string getColToRightOrLeft(std::string curCell, int amm){
 }
 
 std::string movePiece(std::string nCell,std::string oCell,std::string board){
-  int oCellPos=getListPos(oCell);
-  int nCellPos=getListPos(nCell);
-
+  int oCellPos=getListPos(oCell);int nCellPos=getListPos(nCell);std::string piece = getPieceName(board[oCellPos]);
+  if(piece=="wPawn" && nCell[1]=='8'){board[nCellPos]='q';board[oCellPos]='.';}
+  else if(piece=="bPawn" && nCell[1]=='1'){board[nCellPos]='Q';board[oCellPos]='.';}
+  else{
   board[nCellPos]=board[oCellPos];
-  board[oCellPos]='.';
+  board[oCellPos]='.';}
   return board;}
 
 int checkPieceAmm(char piece,std::string board){return std::count(board.begin(),board.end(), piece);}
@@ -474,10 +476,11 @@ int boardValCalc(std::string board,char player,int count){
   tVal+=getPositionalBonuses(player, board);
   return tVal;}
 
-std::string simulate(std::string board,int depth,char player,int alpha=-100000,int beta=100000,bool allowNullMove=false,int count=0){
-  if(allowNullMove && depth >= 4) {
+std::string simulate(std::string board,int d,char player,int alpha=-100000,int beta=100000,bool allowNullMove=false,int count=0){
+  nodes+=1;
+  if(allowNullMove && d >= 4) {
         char otherPlayer = (player == 'b') ? 'w' : 'b';//Give opponent a free turn with lower depth
-        std::string nullResult = simulate(board, depth - 3, otherPlayer, -beta, -beta + 1, false,count+2);
+        std::string nullResult = simulate(board, d - 3, otherPlayer, -beta, -beta + 1, false,count+2);
         int nullScore = -std::stoi(nullResult.substr(4));
         if(nullScore >= beta) {return "----" + std::to_string(beta);}}//If even with free move opponent cant defend, this line is best prob
   std::string piecesToCheck="";
@@ -497,7 +500,10 @@ std::string simulate(std::string board,int depth,char player,int alpha=-100000,i
         else{quietMoves+=cCell;}}
 
       sortedMoves+=(capturingMoves+quietMoves);
+      int lenOfCaptureMoves=capturingMoves.length();
+      int depth;
       for(int j=0;j<sortedMoves.length();j+=2){
+        if(lenOfCaptureMoves*2<=j){depth=d-2;}else{depth=d;}
         std::string fCell(1,sortedMoves[j]);fCell+=sortedMoves[j+1];
         std::string nBoard=movePiece(fCell,cell,board);
         char otherPlayer;
@@ -540,12 +546,12 @@ int main(){
     if(count%2){player='b';word="Black";std::cout<<"\n"<<BLACK<<word<<"'s turn to play\n";}
     else{std::cout<<WHITE<<"\n"<<word<<"'s turn to play\n";}
     if(aiON && player=='b'){
-      std::cout<<"AI is thinking...\n";
+      std::cout<<"AI is thinking...\n";nodes=0;
       std::string aiMove=simulate(board,d,player,-100000,100000,true,count);
       std::string originCell=std::string(1,aiMove[0])+std::string(1,aiMove[1]);
       std::string cellToGoTo=std::string(1,aiMove[2])+std::string(1,aiMove[3]);
       board=movePiece(cellToGoTo,originCell,board);
-      std::cout<<"Black played "<<originCell<<" to "<<cellToGoTo<<"\n";count+=1;continue;}
+      std::cout<<"Black played "<<originCell<<" to "<<cellToGoTo<<". Searched "<<nodes<<" nodes.\n";count+=1;continue;}
     while(true){
       printFullBoard(board);
       //add error validation for input misformatting
@@ -579,4 +585,3 @@ int main(){
   }
   return 0;
 }
-
