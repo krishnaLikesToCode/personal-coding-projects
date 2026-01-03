@@ -8,12 +8,17 @@
 #ifdef _WIN32
 #include <io.h>
 #include <windows.h>
+#include <vector>
+#include <cmath>
+#include <random>
 #endif
 const std::string RESET = "\033[0m";//what it says on the tin
 const std::string BLACK  = "\033[0;94m"; // white
 const std::string WHITE  = "\033[93m"; // black
 const std::string ALPHA ="ABCDEFGH";
+constexpr int MAX_DEPTH = 20;
 int nodes=0;
+std::string killer[2][MAX_DEPTH];
 
 void doWeirdTerminalStuff(){
   #ifdef _WIN32
@@ -430,7 +435,7 @@ int getPositionalBonuses(char player, std::string board) {
     int addedVal = 0;
     for(int i = 0; i < board.length(); i++) {
         char piece = board[i];  
-        if(piece == '.' || piece == 'k' || piece == 'K') continue;  
+        if(piece!='n' && piece!='N' && piece!='p' && piece!='P') continue;  
         std::string pName = getPieceName(piece);
         if(pName[0] != player) continue;  
         char pType = pName[1];
@@ -438,8 +443,24 @@ int getPositionalBonuses(char player, std::string board) {
             int row = i / 8;
             int col = i % 8;
             int centerDistance = abs(3.5 - row) + abs(3.5 - col);
-            addedVal += (7 - centerDistance) * 2;}}
+            addedVal += (7 - centerDistance);
+            }
+        else if(pType=='p'){
+          int row=i/8;int col= i % 8;
+          if(piece=='p'){if(row==1){addedVal-=30;}else{addedVal+=((row-1)*15);}}
+          else if(piece=='P'){if(row==7){addedVal-=30;}else{addedVal+=((6-row)*15);}}
+          if(col >= 3 && col <= 4) {addedVal += 20;}}}
     return addedVal;}
+
+int quietMoveScoreForSorting(std::string move,int depth){
+  int score=0;
+  if(depth>=0 && depth<MAX_DEPTH){
+    if(move==killer[0][depth]){score+=9000;}
+    else if(move==killer[1][depth]){score+=8000;}
+  }
+  // Add base score for pawn advances to make them more likely to move
+    return score;
+}
 bool checkIfCheck(std::string board, char player) {
     std::string kingCell = "";
     for(int i = 0; i < board.length(); i++) {
@@ -457,12 +478,12 @@ bool checkIfCheck(std::string board, char player) {
 
 int lookUpVal(std::string pName){
   switch(pName[1]){
-    case 'P':return 1;
-    case 'R':return 5;
-    case 'B':return 4;
-    case 'Q':return 9;
-    case 'K':return 1000;
-    case 'k':return 3;
+    case 'P':return 100;
+    case 'R':return 500;
+    case 'B':return 330;
+    case 'Q':return 900;
+    case 'K':return 20000;
+    case 'k':return 320;
     default: return 0;}}
 
 int boardValCalc(std::string board,char player,int count){
@@ -472,7 +493,7 @@ int boardValCalc(std::string board,char player,int count){
     int val=lookUpVal(getPieceName(board[i]));
     char clr=getPieceName(board[i])[0];
     if(clr==player){tVal+=val;}else{tVal-=val;}}
-  if(count>=25){if(checkIfCheck(board,player)){tVal-=1000;}}
+  if(count>=10){if(checkIfCheck(board,player)){tVal-=50;}if(checkIfCheck(board,otherPlayer)){tVal+=30;}}
   tVal+=getPositionalBonuses(player, board);
   return tVal;}
 
@@ -480,30 +501,37 @@ std::string simulate(std::string board,int d,char player,int alpha=-100000,int b
   nodes+=1;
   if(allowNullMove && d >= 4) {
         char otherPlayer = (player == 'b') ? 'w' : 'b';//Give opponent a free turn with lower depth
-        std::string nullResult = simulate(board, d - 3, otherPlayer, -beta, -beta + 1, false,count+2);
+        std::string nullResult = simulate(board, d - 2, otherPlayer, -beta, -beta + 1, false,count+2);
         int nullScore = -std::stoi(nullResult.substr(4));
         if(nullScore >= beta) {return "----" + std::to_string(beta);}}//If even with free move opponent cant defend, this line is best prob
-  std::string piecesToCheck="";
+  std::string piecesToCheck="";std::vector<std::string> piecesToCheckVec;
   std::string bestMove="";
   for(int i=0;i<board.length();i++){
-    if(getPieceName(board[i])[0]==player){piecesToCheck.append(getCellCode(i));}}
-
-  for(int i=0;i<piecesToCheck.length();i+=2){
-    std::string capturingMoves="";std::string quietMoves="";std::string sortedMoves="";
-    std::string cell=std::string(1,piecesToCheck[i])+std::string(1,piecesToCheck[i+1]);
+    if(getPieceName(board[i])[0]==player){piecesToCheckVec.push_back(getCellCode(i));}}
+  std::shuffle(piecesToCheckVec.begin(), piecesToCheckVec.end(), std::mt19937{std::random_device{}()});
+  for(int i=0;i<piecesToCheckVec.size();i++){
+    std::string capturingMoves="";std::string quietMoves="";std::string sortedMoves="";std::vector<std::string> capturingList;std::vector<std::string> quietList;
+    std::string cell=piecesToCheckVec[i];
     std::string moves=getOrDoMoves(cell,"N1",false,true,board);
     if(moves.length()!=0){
 
       for(int j=0;j<moves.length();j+=2){
         std::string cCell(1,moves[j]);cCell+=moves[j+1];
-        if(getState(cCell,board)!='.'){capturingMoves+=cCell;}
-        else{quietMoves+=cCell;}}
+        if(getState(cCell,board)!='.'){capturingList.push_back(cCell);}
+        else{quietList.push_back(cCell);}}
+      std::sort(capturingList.begin(),capturingList.end(), [&](const std::string& a,const std::string& b){
+        return boardValCalc(movePiece(a,cell,board),player,count) > boardValCalc(movePiece(b,cell,board),player,count);});
+      std::sort(quietList.begin(), quietList.end(),
+        [&](const std::string& a, const std::string& b) {
+            return quietMoveScoreForSorting(a, d) > quietMoveScoreForSorting(b, d);});
 
-      sortedMoves+=(capturingMoves+quietMoves);
-      int lenOfCaptureMoves=capturingMoves.length();
+      for(int j=0;j<capturingList.size();j++){sortedMoves+=capturingList[j];}
+      for(int j=0;j<quietList.size();j++){sortedMoves+=quietList[j];}
+      int lenOfCaptureMoves=capturingList.size();
       int depth;
       for(int j=0;j<sortedMoves.length();j+=2){
-        if(lenOfCaptureMoves*2<=j){depth=d-2;}else{depth=d;}
+        if(lenOfCaptureMoves*2<=j){depth=d-1;}
+        else{if(lenOfCaptureMoves==0){depth=d-1;}else{depth=(d-static_cast<int>(round(static_cast<double>(j)/lenOfCaptureMoves)));}}
         std::string fCell(1,sortedMoves[j]);fCell+=sortedMoves[j+1];
         std::string nBoard=movePiece(fCell,cell,board);
         char otherPlayer;
@@ -512,13 +540,12 @@ std::string simulate(std::string board,int d,char player,int alpha=-100000,int b
         int score=0;
         if(depth>0){
             std::string futureMove=simulate(nBoard,depth-1,otherPlayer,-beta,-alpha,true,count+1);
-            score=-std::stoi(futureMove.substr(4));
-          }
+            score=-std::stoi(futureMove.substr(4));}
 
         else{score=boardValCalc(nBoard,player,count);}
         if(score>alpha || bestMove.length()==0){
           alpha=score;bestMove=(cell+fCell+std::to_string(score));}
-        if(alpha>=beta){return bestMove;}}}}
+        if(alpha>=beta){if(j>lenOfCaptureMoves*2 && depth>=0 && depth<MAX_DEPTH){killer[1][depth]=killer[0][depth];killer[0][depth]=cell+fCell;};return bestMove;}}}}
   return bestMove;}
 
 int main(){
@@ -535,7 +562,7 @@ int main(){
   std::cin.ignore();
   int d;
   if(aiON){
-  std::cout<<"2.) Choose AI difficulty- baby (1), easy (2), medium (3), hard (4) or extreme (5).\n    Please note extreme requires a NASA PC, and will have 30s delays. Enter the number:\t";
+  std::cout<<"2.) Choose AI difficulty- baby (1), easy (2), medium (4), hard (6) or extreme (7).\n    Hard (6) is recommended.Enter the number you wish to play:\t";
   std::cin>>d;
   std::cin.ignore();}
 
