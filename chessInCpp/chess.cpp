@@ -5,12 +5,12 @@
 #include <fcntl.h>
 #include <locale>
 #include <algorithm>
-#ifdef _WIN32
-#include <io.h>
-#include <windows.h>
 #include <vector>
 #include <cmath>
 #include <random>
+#ifdef _WIN32
+#include <io.h>
+#include <windows.h>
 #endif
 const std::string RESET = "\033[0m";//what it says on the tin
 const std::string BLACK  = "\033[0;94m"; // white
@@ -612,3 +612,4 @@ int main(){
   }
   return 0;
 }
+
