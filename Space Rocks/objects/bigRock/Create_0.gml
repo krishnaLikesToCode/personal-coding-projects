@@ -1,0 +1,11 @@
+globalvar smallRockCreate;
+globalvar angle;
+angle= 0;
+smallRockCreate= false;
+image_angle = random_range(-15, 15) + choose(0, 90, 180, 270);
+x= random_range(900,1700);
+y=random_range(0,720);
+globalvar currentSpeed;
+globalvar r;
+r = random_range(0.1, 0.5);
+currentSpeed=2;
