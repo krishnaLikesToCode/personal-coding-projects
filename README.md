@@ -1,17 +1,17 @@
 # personal-coding-projects
-Hi, i'm Krishna Bhat and here are all my coding projects that i deem workthy to put on the internet and not get laughed at. Been coding since y8, most stuff here is made for fun or made so i can understand an idea/logic (like ciphers and compression). Here the highlights (in my opinion) of this repo:
 
-- chess (Py)= https://github.com/krishnaLikesToCode/personal-coding-projects/blob/main/chess.py
-  
-- optimised chess (cPP)= https://github.com/krishnaLikesToCode/personal-coding-projects/tree/main/chessInCpp
+Hi, I'm Krishna Bhat and here are all my coding projects that I deem worthy to put on the internet and not get laughed at. Been coding since 12, most stuff here is made for fun or made so I can understand an idea/logic (like ciphers and compression). Here the highlights (in my opinion) of this repo:
 
-- RLE image compression (Py) (NEEDS PIL/pillow installed)= https://github.com/krishnaLikesToCode/personal-coding-projects/blob/main/RLE_image_compression.py
+- chess (Py)= https://github.com/krishnaLikesToCode/personal-coding-projects/tree/main/chessInPython 
 
-- Graphing calculator (Py)= https://github.com/krishnaLikesToCode/personal-coding-projects/blob/main/graphing_calculator.py
+- optimized chess (cPP)= https://github.com/krishnaLikesToCode/personal-coding-projects/tree/main/chessInCpp
 
-- Caesar cipher + cracker (Py)= https://github.com/krishnaLikesToCode/personal-coding-projects/blob/main/caesar_cipher_encrypt_and_cracker.py
+- RLE image compression (Py) (NEEDS PIL/pillow installed)= https://github.com/krishnaLikesToCode/personal-coding-projects/tree/main/losslessImageCompression
 
-- RSS for F1iS (Py)= https://github.com/krishnaLikesToCode/personal-coding-projects/blob/main/race%20simulation%20system.py
+- Graphing calculator (Py)= https://github.com/krishnaLikesToCode/personal-coding-projects/tree/main/graphingCalculatorPy
 
-- Rock,Paper,Scissors with GUI (Py)= https://github.com/krishnaLikesToCode/personal-coding-projects/tree/main/RockPaperScissorsPy
+- Caesar cipher + cracker (Py)= https://github.com/krishnaLikesToCode/personal-coding-projects/tree/main/caesarCipherCrackerAndEncryptor
 
+- RSS for F1iS (Py)= https://github.com/krishnaLikesToCode/personal-coding-projects/tree/main/raceSimulationSystemPy
+
+- Rock,Paper,Scissors with GUI (Py)=  https://github.com/krishnaLikesToCode/personal-coding-projects/tree/main/RockPaperScissorsPy
