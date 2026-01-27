@@ -126,7 +126,6 @@ def getProbRating(g):
         if words[i] in g:
             probRating+=1
     return probRating
-
     
 
 if mode =="e":

@@ -11,6 +11,7 @@ Hi, i'm Krishna Bhat and here are all my coding projects that i deem workthy to 
 
 - Caesar cipher + cracker (Py)= https://github.com/krishnaLikesToCode/personal-coding-projects/blob/main/caesar_cipher_encrypt_and_cracker.py
 
-- RSS for F1is (Py)= https://github.com/krishnaLikesToCode/personal-coding-projects/blob/main/race%20simulation%20system.py
+- RSS for F1iS (Py)= https://github.com/krishnaLikesToCode/personal-coding-projects/blob/main/race%20simulation%20system.py
 
 - Rock,Paper,Scissors with GUI (Py)= https://github.com/krishnaLikesToCode/personal-coding-projects/tree/main/RockPaperScissorsPy
+
