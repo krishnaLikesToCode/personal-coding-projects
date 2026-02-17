@@ -1,6 +1,6 @@
 # personal-coding-projects
 
-Hi, I'm Krishna Bhat and here are all my coding projects that I deem worthy to put on the internet and not get laughed at. Been coding since 12, most stuff here is made for fun or made so I can understand an idea/logic (like ciphers and compression). Here the highlights (in my opinion) of this repo:
+Hi, I'm Krishna and here are all my coding projects that I deem worthy to put on the internet and not get laughed at. Been coding since 12, most stuff here is made for fun or made so I can understand an idea/logic (like ciphers and compression). Here the highlights (in my opinion) of this repo:
 
 - chess (Py)= https://github.com/krishnaLikesToCode/personal-coding-projects/tree/main/chessInPython 
 
