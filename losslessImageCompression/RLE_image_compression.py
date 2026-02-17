@@ -95,6 +95,7 @@ def convertToImage(pixelStates):    # takes arg of binary pixel data/states (0 a
         for j in range(len(pixelStates[i])):
             convertedImage.putpixel((j,i),pixelStates[i][j])
     convertedImage.show()
+    convertedImage.save("output.png")
 
 
 #main code
@@ -106,7 +107,7 @@ if eOrD.strip().lower() == "compress":
         try:
             cool = Image.open(imgDir).convert("1")
             writeToFile(encodeImageData(getBinaryPixelData(cool)))
-            os.startfile("compressedImageData.txt")
+            #os.startfile("compressedImageData.txt")
             break
         except FileNotFoundError:
             print("Invalid file- maybe you misspelt the name or file extension?\n")

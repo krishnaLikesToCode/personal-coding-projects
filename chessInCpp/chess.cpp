@@ -215,8 +215,7 @@ std::string pawnMoves(std::string curCell, std::string futCell,
         getPieceName(getState(cell, board)) != "nEmpty" and
         getPieceName(getState(cell, board))[0] !=
             getPieceName(getState(curCell, board))[0]) {
-      validMoves.append(cell);
-    }
+      validMoves.append(cell);}
   }
 
   if (isAI) {
