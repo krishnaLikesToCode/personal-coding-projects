@@ -203,7 +203,7 @@ def drawGraphToTurtle(tWindow,indepVar,depVar,unitX,unitY,graphName):
     
     t.goto(-95,87)
     t.write(f"{mY:.2f}{unitY}\t{graphName}")
-    t.goto(70,-98)
+    t.goto(60,-98)
     t.write(f"{mX:.0f}{unitX}")
     scaleX=200/ mX
     scaleY=200/ mY
