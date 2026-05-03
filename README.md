@@ -4,8 +4,6 @@
 
 - Chess (Py)= https://github.com/krishnaLikesToCode/personal-coding-projects/tree/main/chessInPython 
 
-- Optimized chess (cPP)= https://github.com/krishnaLikesToCode/personal-coding-projects/tree/main/chessInCpp
-
 - RLE image compression (Py) (NEEDS PIL/pillow installed)= https://github.com/krishnaLikesToCode/personal-coding-projects/tree/main/losslessImageCompression
 
 - Graphing calculator (Py)= https://github.com/krishnaLikesToCode/personal-coding-projects/tree/main/graphingCalculatorPy
@@ -20,3 +18,4 @@
 ***My highlights of other repos/across Github:***
 
 - ***EduFetch*** https://github.com/krishnaLikesToCode/EduFetch
+- ***Terminally Chess (CPP)*** https://github.com/krishnaLikesToCode/Terminally-Chess-CPP
