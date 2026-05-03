@@ -10,12 +10,11 @@
 
 - Caesar cipher + cracker (Py)= https://github.com/krishnaLikesToCode/personal-coding-projects/tree/main/caesarCipherCrackerAndEncryptor
 
-- RSS for F1iS (Py)= https://github.com/krishnaLikesToCode/personal-coding-projects/tree/main/raceSimulationSystemPy
-
 - Rock,Paper,Scissors with GUI (Py)=  https://github.com/krishnaLikesToCode/personal-coding-projects/tree/main/RockPaperScissorsPy
 
 
 ***My highlights of other repos/across Github:***
 
-- ***EduFetch*** https://github.com/krishnaLikesToCode/EduFetch
+- ***EduFetch (Py)*** https://github.com/krishnaLikesToCode/EduFetch
 - ***Terminally Chess (CPP)*** https://github.com/krishnaLikesToCode/Terminally-Chess-CPP
+- ***Tresnox Race Simulation System (Py)*** https://github.com/krishnaLikesToCode/Tresnox-Race-Simulation-System
